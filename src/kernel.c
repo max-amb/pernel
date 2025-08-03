@@ -9,16 +9,16 @@ Tutorials that you don't wanna miss:
 #include <efi.h>
 #include <efilib.h>
 
-const CHAR8 ascii[] = [
-    L"                                                     .--.",
-    L" ____                              ___             .'_\\/_'.",
-    L"/\\  _`\\                           /\\_ \\            '. /\\ .'",
-    L"\\ \\ \\L\\ \\ __   _ __    ___      __\\//\\ \\             "||"",
-    L" \\ \\ ,__/'__`\\/\\`'__\\/' _ `\\  /'__`\\\\ \\ \\             || /\\ ",
-    L"  \\ \\ \\/\\  __/\\ \\ \\/ /\\ \\/\\ \\/\\  __/ \\_\\ \\_        /\\ ||//\\)",
-    L"   \\ \\_\\ \\____\\\\ \\_\\ \\ \\_\\ \\_\\ \\____\\/\\____\\      (/\\\\||/",
-    L"    \\/_/\\/____/ \\/_/  \\/_/\\/_/\\/____/\\/____/   ______\\||/_______"
-];
+const CHAR16 *Ascii[] = {
+    L"                                                     .--.\r\n",
+    L" ____                              ___             .'_\\/_'.\r\n",
+    L"/\\  _`\\                           /\\_ \\            '. /\\ .'\r\n",
+    L"\\ \\ \\L\\ \\ __   _ __    ___      __\\//\\ \\             \"\||\"\r\n",
+    L" \\ \\ ,__/'__`\\/\\`'__\\/' _ `\\  /'__`\\\\ \\ \\             || /\\ \r\n",
+    L"  \\ \\ \\/\\  __/\\ \\ \\/ /\\ \\/\\ \\/\\  __/ \\_\\ \\_        /\\ ||//\\)\r\n",
+    L"   \\ \\_\\ \\____\\\\ \\_\\ \\ \\_\\ \\_\\ \\____\\/\\____\\      (/\\\\||/\r\n",
+    L"    \\/_/\\/____/ \\/_/  \\/_/\\/_/\\/____/\\/____/   ______\\||/_______\r\n"
+};
 
 
 /* 
@@ -70,10 +70,10 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     /* Call the procedure Stall() at BootServices to sleep for 1s. */
     uefi_call_wrapper(BS->Stall, 1, 1000000);
 
-    for (int i = 0; i < sizeof(ascii)/sizeof(ascii[0]); i++) {
+    for (UINTN i = 0; i < sizeof(Ascii)/sizeof(Ascii[0]); i++) {
         uefi_call_wrapper(BS->Stall, 1, 100000);
         Status = uefi_call_wrapper(ST->ConOut->OutputString, 2, 
-            ST->ConOut, ascii[i] + "\n");
+            ST->ConOut, Ascii[i]);
         if (EFI_ERROR(Status)) return Status;  /* Check for error */
     }
 
