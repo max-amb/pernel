@@ -63,8 +63,13 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     the user explicitly key in "q".
     */
 
+<<<<<<< Updated upstream:src/kernel.c
     // Clear the input stream
     Status = uefi_call_wrapper(ST->ConIn->Reset, 2, ST->ConIn, FALSE);
+=======
+    /* Clear the input stream */
+    Status = uefi_call_wrapper(ST->ConIn->Reset, 2, ST->ConIN, FALSE);
+>>>>>>> Stashed changes:kernel.c
     if (EFI_ERROR(Status)) return Status; 
 
     /*
@@ -76,10 +81,20 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
      */
     EFI_INPUT_KEY Key; 
     CHAR16 Line[64];
+    UINTN InputIdx = 0;
 
     Status = uefi_call_wrapper(ST->ConOut->OutputString, 2, 
         ST->ConOut, L"You may type :) Enter to submit, q to quit:\r\n");
     if (EFI_ERROR(Status)) return Status;  /* Check for error */
 
-    return EFI_SUCCESS;  // The process has finished successfully.
+    for (;;) {
+        /* Call ReadKeyStroke() to read in a key */
+        Status = uefi_call_wrapper(ST->ConIn->ReadKeyStroke, 2,
+            ST->ConIn, &Key);
+        /* If there's no key yet, skip */
+        if (Status = EFI_NOT_READY) continue;
+        /* If there's no key yet, skip */
+    }
+
+    return EFI_SUCCESS;  /* The process has finished successfully. */
 }
