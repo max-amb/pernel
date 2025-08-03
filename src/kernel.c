@@ -9,6 +9,18 @@ Tutorials that you don't wanna miss:
 #include <efi.h>
 #include <efilib.h>
 
+const char ascii[] = [
+    "                                                     .--.",
+    " ____                              ___             .'_\/_'.",
+    "/\  _`\                           /\_ \            '. /\ .'",
+    "\ \ \L\ \ __   _ __    ___      __\//\ \             "||"",
+    " \ \ ,__/'__`\/\`'__\/' _ `\  /'__`\\ \ \             || /\ ",
+    "  \ \ \/\  __/\ \ \/ /\ \/\ \/\  __/ \_\ \_        /\ ||//\)",
+    "   \ \_\ \____\\ \_\ \ \_\ \_\ \____\/\____\      (/\\||/",
+    "    \/_/\/____/ \/_/  \/_/\/_/\/____/\/____/   ______\||/_______"
+]
+
+
 /* 
 EFI_STATUS: signifies that efi_main will return a UEFI status code.
 EFIAPI: a macro that expands to the correct calling convention for
@@ -52,11 +64,18 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     stream and the buffer. The "L" prefix signifies wide literal.
     */
     Status = uefi_call_wrapper(ST->ConOut->OutputString, 2, 
-        ST->ConOut, L"Hello PAIR!");
+        ST->ConOut, L"Hello PAIR! ");
     if (EFI_ERROR(Status)) return Status;  /* Check for error */
     
     /* Call the procedure Stall() at BootServices to sleep for 1s. */
     uefi_call_wrapper(BS->Stall, 1, 1000000);
+
+    for (int i = 0; i < sizeof(ascii)/sizeof(ascii[0]); i++) {
+        uefi_call_wrapper(BS->Stall, 1, 100000);
+        Status = uefi_call_wrapper(ST->ConOut->OutputString, 2, 
+            ST->ConOut, ascii[i] + "\\n");
+        if (EFI_ERROR(Status)) return Status;  /* Check for error */
+    }
 
     /****
     Next, we implement a mechanism where the system won't quit unless
@@ -64,7 +83,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     ****/
 
     /* Clear the input stream */
-    Status = uefi_call_wrapper(ST->ConIn->Reset, 2, ST->ConIN, FALSE);
+    Status = uefi_call_wrapper(ST->ConIn->Reset, 2, ST->ConIn, FALSE);
     if (EFI_ERROR(Status)) return Status; 
 
     /*
