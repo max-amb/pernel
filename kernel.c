@@ -64,7 +64,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     */
 
     // Clear the input stream
-    Status = uefi_call_wrapper(ST->ConIn->Reset, 2, ST-ConIN, false);
+    Status = uefi_call_wrapper(ST->ConIn->Reset, 2, ST->ConIn, FALSE);
     if (EFI_ERROR(Status)) return Status; 
 
     /*
@@ -74,7 +74,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
             CHAR16: UnicodeChar
         }
      */
-    EFI_KEY_INPUT Key; 
+    EFI_INPUT_KEY Key; 
     CHAR16 Line[64];
 
     Status = uefi_call_wrapper(ST->ConOut->OutputString, 2, 
