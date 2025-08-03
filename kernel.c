@@ -8,20 +8,28 @@ EFIAPI: a macro that expands to the correct calling convention for
         UEFI on the target architecture.
 */
 EFI_STATUS
-EFI_API 
+EFIAPI 
 efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) 
 {
     EFI_STATUS Status;
-    
+
     /* 
     System Table is a pointer to the "top-level directory"
     of UEFI services and core interfaces, including:
         - Console I/O
         - Services -> BootServices, RuntimeServices
         - Configuration Tables -> Array of GUID+pointer entries
+        ...
     */
-    ST = SystemTable;
-
+    InitializeLib(ImageHandle, SystemTable);
+    /* 
+    InitializeLib initializes the library globals like 
+        - ST for SystemTable
+        - BS for SystemTable -> BootServices
+        - RT for SystemTable -> RuntimeServices
+        ...
+    */
+    
     /*
     The uefi_call_wrapper ensures compatibility between the host 
     system's gcc and UEFI. It's a function from `libefi.a`:
@@ -36,10 +44,9 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     */
     
     /*
-    Call Stall() at BootServices to halt the program for 5 seconds.
+    Call the procedure Stall() at BootServices to sleep for 5s.
     */
-    Status = uefi_call_wrapper(ST->BootServices->Stall, 1, 5000000);
-    if (EFI_ERROR(Status)) return Status;
+    uefi_call_wrapper(BS->Stall, 1, 5000000);
 
-    return Status;  // Status shall be EFI_SUCCESS here. 
+    return EFI_SUCCESS;  // The process has finished successfully.
 }
