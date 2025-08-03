@@ -64,7 +64,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     stream and the buffer. The "L" prefix signifies wide literal.
     */
     Status = uefi_call_wrapper(ST->ConOut->OutputString, 2, 
-        ST->ConOut, L"Hello PAIR! ");
+        ST->ConOut, L"\r\n\r\n Hello PAIR!\r\n");
     if (EFI_ERROR(Status)) return Status;  /* Check for error */
     
     /* Call the procedure Stall() at BootServices to sleep for 1s. */
@@ -98,7 +98,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     UINTN InputIdx;
 
     Status = uefi_call_wrapper(ST->ConOut->OutputString, 2, 
-        ST->ConOut, L"You may type :) Enter to submit, q to quit:\r\n");
+        ST->ConOut, L"\r\nYou may type :) Enter to submit, q to quit:\r\n");
     if (EFI_ERROR(Status)) return Status;  /* Check for error */
     
     /* The 1st for-loop keeps the shell running continuously */
@@ -121,7 +121,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
             }
 
             Status = uefi_call_wrapper(ST->ConOut->OutputString, 2,
-                ST->ConOut, Key);
+                ST->ConOut, Key.UnicodeChar);
             if (EFI_ERROR(Status)) return Status;
             
             /* 
