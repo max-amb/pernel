@@ -119,16 +119,18 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
                 Line[InputIdx] = L'\0';  /* NULL termination */
                 break;
             }
-
-            Status = uefi_call_wrapper(ST->ConOut->OutputString, 2,
-                ST->ConOut, Key.UnicodeChar);
-            if (EFI_ERROR(Status)) return Status;
+            if (Status == L'\b') continue;
             
             /* 
             Store the key if space permits;
             save the last index for NULL termination.
             */
             if (InputIdx + 1 < 63) {
+                /* Output the keys entered */
+                CHAR16 ch[2] = { Key.UnicodeChar, 0 };
+                Status = uefi_call_wrapper(ST->ConOut->OutputString, 2, 
+                    ST->ConOut, ch);
+                if (EFI_ERROR(Status)) return Status;
                 Line[InputIdx++] = Key.UnicodeChar;
             }
         }
