@@ -6,8 +6,8 @@ a simple OS kernel, made at PAIR camp 2025
 ### Core Elements
 * **`Makefile`**
 * **`linker.ld`**
-* **`boot.S`** (booting source file)
 * **`kernel.c`** (C entry point that writes “Hello, world!” to the screen)
+    * The entry point to a UEFI application is a C file, no other assembly files needed.
 
 ### Process
 1. **`Makefile`**
