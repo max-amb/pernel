@@ -58,18 +58,13 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     /* Call the procedure Stall() at BootServices to sleep for 1s. */
     uefi_call_wrapper(BS->Stall, 1, 1000000);
 
-    /*
+    /****
     Next, we implement a mechanism where the system won't quit unless
     the user explicitly key in "q".
-    */
+    ****/
 
-<<<<<<< Updated upstream:src/kernel.c
-    // Clear the input stream
-    Status = uefi_call_wrapper(ST->ConIn->Reset, 2, ST->ConIn, FALSE);
-=======
     /* Clear the input stream */
     Status = uefi_call_wrapper(ST->ConIn->Reset, 2, ST->ConIN, FALSE);
->>>>>>> Stashed changes:kernel.c
     if (EFI_ERROR(Status)) return Status; 
 
     /*
@@ -81,19 +76,45 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
      */
     EFI_INPUT_KEY Key; 
     CHAR16 Line[64];
-    UINTN InputIdx = 0;
+    UINTN InputIdx;
 
     Status = uefi_call_wrapper(ST->ConOut->OutputString, 2, 
         ST->ConOut, L"You may type :) Enter to submit, q to quit:\r\n");
     if (EFI_ERROR(Status)) return Status;  /* Check for error */
+    
+    /* The 1st for-loop keeps the shell running continuously */
+    for (;;){
+        InputIdx = 0;
+        Line[0] = L'\0';  /* Prevent null input */
+        /* The 2nd for-loop ensures continuous input */
+        for (;;) {
+            /* Call ReadKeyStroke() to read in a key */
+            Status = uefi_call_wrapper(ST->ConIn->ReadKeyStroke, 2,
+                ST->ConIn, &Key);
+            /* If there's no key yet, skip */
+            if (Status == EFI_NOT_READY) continue;
+            /* If there's an error, return the error */
+            if (EFI_ERROR(Status)) return Status;
+            /* If there's an ENTER, break the input loop */
+            if (Key.UnicodeChar == L'\r') {
+                Line[InputIdx] = L'\0';  /* NULL termination */
+                break;
+            }
+            
+            /* 
+            Store the key if space permits;
+            save the last index for NULL termination.
+            */
+            if (InputIdx + 1 < 63) {
+                Line[InputIdx++] = Key.UnicodeChar;
+            }
+        }
+        /* If the user types 'q', closes the shell */
+        if (InputIdx == 1 && Line[0] == L'q') break;
 
-    for (;;) {
-        /* Call ReadKeyStroke() to read in a key */
-        Status = uefi_call_wrapper(ST->ConIn->ReadKeyStroke, 2,
-            ST->ConIn, &Key);
-        /* If there's no key yet, skip */
-        if (Status = EFI_NOT_READY) continue;
-        /* If there's no key yet, skip */
+        /* Print() achieves the same outputing effect, but slower */
+        Status = Print(L"You typed: %s\r\n", Line);
+        if (EFI_ERROR(Status)) return Status;  /* Check for error */
     }
 
     return EFI_SUCCESS;  /* The process has finished successfully. */
