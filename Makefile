@@ -1,6 +1,6 @@
-export GNU_EFI := $(nix eval --raw nixpkgs#gnu-efi)
+export GNU_EFI := $(shell nix eval --raw nixpkgs#gnu-efi)
 export CC := gcc
-export CFLAGS := export CFLAGS := -fno-stack-protector -fpic -fshort-wchar -mno-red-zone -I ${gnu_efi}/include/efi -I ${gnu_efi}/include/efi/x86_64 -DEFI_FUNCTION_WRAPPER
+export CFLAGS := -fno-stack-protector -fpic -fshort-wchar -ffreestanding -maccumulate-outgoing-args -I $(GNU_EFI)/include/efi/ -I $(GNU_EFI)/include/efi/x86_64
 
 kernel: kernel.c
-	$(CC) -o kernel kernel.c $(CFLAGS)
+	$(CC) -o kernel.o kernel.c $(CFLAGS)
