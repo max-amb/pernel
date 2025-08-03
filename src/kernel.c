@@ -20,6 +20,20 @@ const CHAR16 *Ascii[] = {
     L"    \\/_/\\/____/ \\/_/  \\/_/\\/_/\\/____/\\/____/   ______\\||/_______\r\n"
 };
 
+const CHAR16 *A[] = {
+L"\r\n_____ _                 _                           __            \r\n",
+L"|_   _| |__   __ _ _ __ | | __  _   _  ___  _   _   / _| ___  _ __ \r\n",
+L"  | | | '_ \\ / _` | '_ \\| |/ / | | | |/ _ \\| | | | | |_ / _ \\| '__|\r\n",
+L"  | | | | | | (_| | | | |   <  | |_| | (_) | |_| | |  _| (_) | |   \r\n",
+L"  |_| |_| |_|\\__,_|_| |_|_|\\_\\  \\__, |\\___/ \\__,_| |_|  \\___/|_|   \r\n",
+L"                                |___/                              \r\n",
+L" _ _     _             _             _ \r\n",
+L"| (_)___| |_ ___ _ __ (_)_ __   __ _| |\r\n",
+L"| | / __| __/ _ \\ '_ \\| | '_ \\ / _` | |\r\n",
+L"| | \\__ \\ ||  __/ | | | | | | | (_| |_|\r\n",
+L"|_|_|___/\\__\\___|_| |_|_|_| |_|\\__, (_)\r\n",
+L"                               |___/   \r\n",
+};
 
 /* 
 EFI_STATUS: signifies that efi_main will return a UEFI status code.
@@ -41,7 +55,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     */
     InitializeLib(ImageHandle, SystemTable);
     /* 
-    InitializeLib initializes the library globals like 
+    InitializeLib initializes the library" globals like 
         - ST for SystemTable
         - BS for SystemTable -> BootServices
         - RT for SystemTable -> RuntimeServices
@@ -134,8 +148,18 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
                 Line[InputIdx++] = Key.UnicodeChar;
             }
         }
+        Print(L"\r\n");
         /* If the user types 'q', closes the shell */
         if (InputIdx == 1 && Line[0] == L'q') break;
+        
+        if (InputIdx == 3 && Line[0] == L'e' && Line[1] == L'n' && Line[2] == L'd') {
+            for (UINTN i = 0; i < sizeof(A)/sizeof(A[0]); i++) {
+                uefi_call_wrapper(BS->Stall, 1, 100000);
+                Status = uefi_call_wrapper(ST->ConOut->OutputString, 2, 
+                    ST->ConOut, A[i]);
+                if (EFI_ERROR(Status)) return Status;  /* Check for error */
+            }
+        }
 
         /* Print() achieves the same outputing effect, but slower */
         Status = Print(L"You typed: %s\r\n", Line);
