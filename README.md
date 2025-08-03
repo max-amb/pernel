@@ -1,19 +1,31 @@
 # pernel
 a simple OS kernel, made at PAIR camp 2025
 
-# the flow
+## The Flow
 
-### core elements
-* `Makefile`
-* `Linker.ld`
-* `boot.s`
-* `something to actually write to screen (e.g. "hello world")
+### Core Elements
+* **`Makefile`**
+* **`linker.ld`**
+* **`boot.S`** (booting source file)
+* **`kernel.c`** (C entry point that writes “Hello, world!” to the screen)
 
-### process
-`Makefile` -> compiles all other files as objects --> `linker.ld` --> tells entry point of system --> linker program links files together --> make command makes a `.iso` (binary representation of objects)
+### Process
+1. **`Makefile`**
+   - Defines how `make` compiles each `.S` and `.c` into `.o` object files.
+   - Invokes the **linker** with **`linker.ld`** to lay out those objects in memory and set the entry point.
+   - Packages the resulting `kernel.efi` into a bootable image (FAT-ESP).
+2. **`linker.ld`**
+   - Tells the linker where to place the code/data sections and which symbol is the entry point.
+3. **Linker** (`i686-elf-ld`)
+   - Takes all the `.o` files plus the script, resolves symbols, applies relocations, and produces the final EFI image (`kernel.efi`).
+4. **Boot Image**
+   - Creates a FAT image (`esp.img`) with `EFI/BOOT/BOOTX64.EFI` → done with QEMU with OVMF
 
-### integration
+### Integration
+```
 [Our Code] <--> [UEFI] <--> [QEMU (simulated hardware)]
+```
 
 * UEFI runs our code which is stored in a `bootx.esi` file
-* The library we use in the C code is `gnuesi` to interact with UEFI.
+* We use **`GNU-EFI`** library to call UEFI Boot Services from C.
+  * UEFI Boot Services give rich APIs to do things like memory services without early bootloader codes.
