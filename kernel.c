@@ -36,7 +36,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
         uefi_call_wrapper(func, numarg, ...)
     */
     Status = uefi_call_wrapper(ST->ConOut->OutputString, 2, 
-        ST->ConOut, L"Hello PAIR!\r\n");
+        ST->ConOut, L"Hello PAIR! ");
     if (EFI_ERROR(Status)) return Status;  /* Check for error */
     /*
     Call OutputString() with two parameters: the ConOut (ConsoleOut)
@@ -47,6 +47,11 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     Call the procedure Stall() at BootServices to sleep for 5s.
     */
     uefi_call_wrapper(BS->Stall, 1, 5000000);
+
+    Status = uefi_call_wrapper(ST->ConOut->OutputString, 2, 
+        ST->ConOut, L"Hello PAIR!\r\n");
+    if (EFI_ERROR(Status)) return Status;  /* Check for error */
+
 
     return EFI_SUCCESS;  // The process has finished successfully.
 }
