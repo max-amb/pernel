@@ -119,6 +119,10 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
                 Line[InputIdx] = L'\0';  /* NULL termination */
                 break;
             }
+
+            Status = uefi_call_wrapper(ST->ConOut->OutputString, 2,
+                ST->ConOut, Key);
+            if (EFI_ERROR(Status)) return Status;
             
             /* 
             Store the key if space permits;
