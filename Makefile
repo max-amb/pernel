@@ -1,15 +1,26 @@
 # Sets variables which store where library files are
-export GNU_EFI := $(shell nix eval --raw nixpkgs#gnu-efi)
-export OVMF := $(shell nix eval --raw nixpkgs#OVMF.fd)
+
+ifeq ($(shell test -f /etc/NIXOS && echo nixos),nixos)
+	export GNU_EFI := $(shell nix eval --raw nixpkgs#gnu-efi)
+	export OVMF := -bios $(shell nix eval --raw nixpkgs#OVMF.fd)/FV/OVMF.fd
+else
+	export GNU_EFI := /usr/
+	export OVMF := /usr/share/ovmf/OVMF.fd
+endif
+
+# export INCLUDE_CFLAGS := $(shell pkg-config --cflags gnu-efi)
+# export INCLUDE_LINKER := $(shell pkg-config --libs gnu-efi)
 
 # Set compiler
 export CC := gcc
 
 # Set the flags so that gcc finds all of the libraries and compiles the code into a binary suitable for running on a uefi bootloader
 export CFLAGS := -fno-stack-protector -fpic -fshort-wchar -ffreestanding -maccumulate-outgoing-args -I $(GNU_EFI)/include/efi/ -I $(GNU_EFI)/include/efi/x86_64
+# export CFLAGS := -fno-stack-protector -fpic -fshort-wchar -ffreestanding -maccumulate-outgoing-args $(INCLUDE_CFLAGS)
 
 # Flags used for linking
-export LD_FLAGS := $(GNU_EFI)/lib/crt0-efi-x86_64.o -nostdlib -znocombreloc -T $(GNU_EFI)/lib/elf_x86_64_efi.lds -shared -Bsymbolic -L $(GNU_EFI)/lib/ -l:libgnuefi.a -l:libefi.a
+# export LD_FLAGS := $(GNU_EFI)/lib/crt0-efi-x86_64.o -nostdlib -znocombreloc -T $(GNU_EFI)/lib/elf_x86_64_efi.lds -shared -Bsymbolic -L $(GNU_EFI)/lib/ -l:libgnuefi.a -l:libefi.a
+export LD_FLAGS := $(GNU_EFI)/lib/crt0-efi-x86_64.o -nostdlib -znocombreloc -T $(GNU_EFI)/lib/elf_x86_64_efi.lds -shared -Bsymbolic -L $(GNU_EFI)/lib/ $(INCLUDE_LINKER)
 
 # Flags used to configure objcopy
 export OBJ_FLAGS := -j .text -j .sdata -j .data -j .rodata -j .dynamic -j .dynsym  -j .rel -j .rela -j .rel.* -j .rela.* -j .reloc --target efi-app-x86_64 --subsystem=10
@@ -41,7 +52,7 @@ qemu: kernel src/kernel.c
 	# Writing the tmp image to the uefi image
 	dd if=/tmp/part.img of=/tmp/uefi.img bs=512 count=91669 seek=2048 conv=notrunc
 	# RUN!
-	qemu-system-x86_64 -cpu qemu64 -bios $(OVMF)/FV/OVMF.fd -drive file=/tmp/uefi.img,if=ide 
+	qemu-system-x86_64 -cpu qemu64 $(OVMF) -drive file=/tmp/uefi.img,if=ide 
 
 # cleanup
 clean:
