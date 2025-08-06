@@ -21,19 +21,42 @@ const CHAR16 *Ascii[] = {
 };
 
 const CHAR16 *A[] = {
-L"\r\n_____ _                 _                           __            \r\n",
-L"|_   _| |__   __ _ _ __ | | __  _   _  ___  _   _   / _| ___  _ __ \r\n",
-L"  | | | '_ \\ / _` | '_ \\| |/ / | | | |/ _ \\| | | | | |_ / _ \\| '__|\r\n",
-L"  | | | | | | (_| | | | |   <  | |_| | (_) | |_| | |  _| (_) | |   \r\n",
-L"  |_| |_| |_|\\__,_|_| |_|_|\\_\\  \\__, |\\___/ \\__,_| |_|  \\___/|_|   \r\n",
-L"                                |___/                              \r\n",
-L" _ _     _             _             _ \r\n",
-L"| (_)___| |_ ___ _ __ (_)_ __   __ _| |\r\n",
-L"| | / __| __/ _ \\ '_ \\| | '_ \\ / _` | |\r\n",
-L"| | \\__ \\ ||  __/ | | | | | | | (_| |_|\r\n",
-L"|_|_|___/\\__\\___|_| |_|_|_| |_|\\__, (_)\r\n",
-L"                               |___/   \r\n",
+  L"\r\n_____ _                 _                           __            \r\n",
+  L"|_   _| |__   __ _ _ __ | | __  _   _  ___  _   _   / _| ___  _ __ \r\n",
+  L"  | | | '_ \\ / _` | '_ \\| |/ / | | | |/ _ \\| | | | | |_ / _ \\| '__|\r\n",
+  L"  | | | | | | (_| | | | |   <  | |_| | (_) | |_| | |  _| (_) | |   \r\n",
+  L"  |_| |_| |_|\\__,_|_| |_|_|\\_\\  \\__, |\\___/ \\__,_| |_|  \\___/|_|   \r\n",
+  L"                                |___/                              \r\n",
+  L" _ _     _             _             _ \r\n",
+  L"| (_)___| |_ ___ _ __ (_)_ __   __ _| |\r\n",
+  L"| | / __| __/ _ \\ '_ \\| | '_ \\ / _` | |\r\n",
+  L"| | \\__ \\ ||  __/ | | | | | | | (_| |_|\r\n",
+  L"|_|_|___/\\__\\___|_| |_|_|_| |_|\\__, (_)\r\n",
+  L"                               |___/   \r\n",
 };
+
+typedef struct PoolChunk {
+  struct PoolChunk *next;
+  UINT8 *Base;
+  // UINTN Cap;
+  UINTN Used;
+} PoolChunk ;
+
+typedef struct PoolArena {
+   PoolChunk *BasePointer;
+   UINT16 Capacity;
+}; 
+
+struct PoolArena Pool;
+
+EFI_STATUS InitChunk () {
+  PoolChunk StartingChunk;
+  StartingChunk.Used = 0;
+  VOID *PoolMemory;
+  EFI_STATUS Status = uefi_call_wrapper(BS->AllocatePool, 3, EfiLoaderData, 65536, &PoolMemory);
+  Pool.BasePointer = &StartingChunk;
+  return Status;
+}
 
 /* 
 EFI_STATUS: signifies that efi_main will return a UEFI status code.
@@ -43,8 +66,8 @@ EFIAPI: a macro that expands to the correct calling convention for
 EFI_STATUS
 EFIAPI 
 efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
-    EFI_STATUS Status;
-
+    Pool.Capacity = 65000;
+    EFI_STATUS Status = InitChunk();
     /* 
     System Table is a pointer to the "top-level directory"
     of UEFI services and core interfaces, including:
@@ -114,7 +137,7 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     Status = uefi_call_wrapper(ST->ConOut->OutputString, 2, 
         ST->ConOut, L"\r\nYou may type :) Enter to submit, q to quit:\r\n");
     if (EFI_ERROR(Status)) return Status;  /* Check for error */
-    
+
     /* The 1st for-loop keeps the shell running continuously */
     for (;;){
         InputIdx = 0;
@@ -163,8 +186,16 @@ efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
         /* Print() achieves the same outputing effect, but slower */
         Status = Print(L"You typed: %s\r\n", Line);
+        for (UINTN iter = 0; iter<Pool.BasePointer->Used; iter++) { *((Pool.BasePointer->Base) + Pool.BasePointer->Used + iter) = Line[iter]; }
+        Pool.BasePointer -> Used += StrLen(Line);
         if (EFI_ERROR(Status)) return Status;  /* Check for error */
     }
+
+    PoolChunk FirstChunk = *Pool.BasePointer;
+    for (UINTN iter = 0; iter<Pool.BasePointer->Used; iter++) {
+      Print(L"%s", *Pool.BasePointer->Base+iter);
+    }
+    BS->Stall(100000);
 
     return EFI_SUCCESS;  /* The process has finished successfully. */
 }
