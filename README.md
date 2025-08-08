@@ -1,4 +1,4 @@
-![pernel logo](pernel.png)
+![pernel logo](pernel-readme.png)
 
 
 a simple OS kernel, made at PAIR camp 2025 by `max`, `zehao`, and `rohan`
